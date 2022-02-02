@@ -24,7 +24,7 @@ ndvi <- read_csv(files[3])%>%
   mutate(data='ndvi')
 
 #Use view to look at a data like you would in excel
-#View(ndmi)
+View(ndmi)
 
 
 ## join all datasets together and rename columns
@@ -44,14 +44,18 @@ full_wide %>%
   filter(!month %in% c(11,12,1,2,3,4,5)) %>%
 ggplot(.,aes(x=burned_ndmi,y=burned_ndvi,color=month)) + 
   geom_point()
-
+View(full_wide)
 
 # Stack as a tidy dataset
 full_long <- rbind(ndvi,ndmi,ndsi) %>%
   gather(key='site',value='value',-DateTime,-data) %>%
   filter(!is.na(value))
+View(full_long)
+
 
 # Plot all three different types
 ggplot(full_long,aes(x=DateTime,y=value,color=site)) + 
   geom_line() + 
-  facet_wrap(~data)
+  facet_wrap(~data)+
+  theme_few() + 
+  scale_color_few() 
