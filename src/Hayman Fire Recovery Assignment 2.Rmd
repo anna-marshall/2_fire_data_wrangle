@@ -2,10 +2,15 @@
 title: "Hayman Fire Recovery"
 author: "Anna Marshall"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
-output: html_document
+output:
+  html_document:
+    toc: true
+    toc_float: true
 ---
+# Overview
+The Hayman Fire was a forest fire started on June 8, 2002, 35 miles northwest of Colorado Springs, Colorado. Below is a graphical analysis looking at some pre and post-fire changes. 
 
-```{r setup, results = FALSE, echo=FALSE, fig.show='hide',warning=FALSE,message=FALSE}
+```{r setup, results = FALSE, results = FALSE, echo=FALSE, fig.show='hide',warning=FALSE,message=FALSE}
 library(tidyverse)
 library(tidyr)
 library(ggthemes)
@@ -268,7 +273,7 @@ ggplot(ndsi_month,aes(x=month,y=mean_NDSI,color=site)) +
 
 ## Bonus Question: Redo all problems with `spread` and `gather` using modern tidyverse syntax. 
 Modern tidyverse syntax uses pivot_wider() and pivot_longer() to reshape data between wide and long formats. Check out the updated code below that utilizes this modern tidyverse syntax. 
-```{r warning=FALSE,message=FALSE}
+```{r warning=FALSE,message=FALSE, results = FALSE}
 #convert long data to wide
 wide_pivot<-pivot_wider(full_long,names_from = "site", values_from = "value")%>%
   mutate(month=month(DateTime),
