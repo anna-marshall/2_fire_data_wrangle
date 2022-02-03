@@ -61,7 +61,7 @@ ggplot(ndvi_month,aes(x=month,y=mean_NDVI,color=site)) +
 ndvi_month_pre_post <- ndvi_long %>% 
   mutate(year = year(DateTime),
          month = month(DateTime),
-         treatment = cut(year,breaks=c(0,2003,2021),
+         treatment = cut(year,breaks=c(0,2003,2020),
                          labels=c('pre-burn','post-burn'))) %>%
   group_by(month,site,treatment) %>%
   summarize(mean_ndvi = mean(NDVI))
