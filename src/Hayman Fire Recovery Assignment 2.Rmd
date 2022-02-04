@@ -9,6 +9,10 @@ output:
 ---
 # Overview
 The Hayman Fire was a forest fire started on June 8, 2002, 35 miles northwest of Colorado Springs, Colorado. Below is a graphical analysis looking at some pre and post-fire changes. 
+![](https://cusp.ws/wp-content/uploads/2014/09/hayman-map-1024x845.jpg)
+
+# Methods
+We use remotely sensed Landsat 5/7/8 surface reflectance imagery to gather NDVI (normalized difference vegetation index), NDSI (normalized difference snow index), and NDMI (normalized difference moisture index) data for the burn extents of the Hayman Fire as well as an adjacent, un-burned reference area. Data was then plotted and visually analyzed for trends. 
 
 ```{r setup, results = FALSE, results = FALSE, echo=FALSE, fig.show='hide',warning=FALSE,message=FALSE}
 library(tidyverse)
@@ -16,6 +20,7 @@ library(tidyr)
 library(ggthemes)
 library(lubridate)
 library(dplyr)
+library(dygraphs)
 
 # Now that we have learned how to munge (manipulate) data
 # and plot it, we will work on using these skills in new ways
@@ -142,17 +147,22 @@ full_long <- rbind(ndvi,ndmi,ndsi) %>%
   filter(!is.na(value))
 
 
-
+```
+# Analysis and Discussion
+Here is an overview plot showing NDVI, NDSI, and NDMI overtime. We see a large drop in NDVI and NDMI values in the burned area following the fire, which makes sense given a decrease in greeness and overall moisture. However, the lack of return to unburned levels tell us that recovery to pre-fire NDVI will require far more than two decades. 
+```{r}
 # Plot all three different types
 ggplot(full_long,aes(x=DateTime,y=value,color=site)) + 
   geom_line() + 
   facet_wrap(~data)+
   theme_few() + 
   scale_color_few() 
-
 ```
+
 ## Q1. Correlation between NDVI and NDMI
-The NDVI is correlated with the NDMI. A higher NDMI should result in a higher NDVI. In other words, more moisture will result in a higher amount of greeness. More precipitation and wetter soils means vegetation can grow more effectively. However, we see a different relationship post-burn. 
+The NDVI is correlated with the NDMI.As a general observed trend, a higher NDMI results in a higher NDVI. In other words, more moisture results in a higher amount of greeness. More precipitation and wetter soils means that vegetation can grow more effectively. In the unburned plot, NDMI appears to move as a gradient from less moisture in the summer to more moisture in the fall. However, we see a different relationship post-burn. Post-burn there is more of a range in NDVI  and we see much lower NDVI and NDMI values post-burn, particularly during the summer. This decrease in NDVI and also NDMI makes sense given the decrease in vegetation and moisture following the fire. In both plots there is a small scatter of high NDMI and low NDVI values in the summer months. 
+
+
 ```{r warning=FALSE,message=FALSE}
 ##convert full_long dataset to wide format
 data_wide<-spread(full_long,data,value)%>%
@@ -173,7 +183,7 @@ ggplot(.,aes(x=ndmi,y=ndvi,color=month)) +
 ```
 
 ## Q2. Correlation between average NDSI (January-April) and NDVI (June-August)
-The average NDSI during the winter is correlated to the NDVI during the summer. More snow means more NDVI in the summer. 
+The average NDSI during the winter is correlated to the NDVI during the summer. More snow in the winter means more greeness in the summer. While the NDSI data points stretch across a greater range on the plot, both the NDSI and NDVI follow a loose bell-shaped curve where NDSI rises and falls with the winter months and NDVI rises and falls with the summer months. 
 ```{r warning=FALSE,message=FALSE}
 ## Plot of snow (ndsi) vs greenness (ndvi) 
 data_wide %>%
@@ -186,6 +196,7 @@ ggplot(.,aes(x=ndvi,y=ndsi,color=month)) +
 
 
 ## Q3. Comparing snow effect between burned vs. unburned and pre- vs. post-burn.
+Here, the data from Q2 is further broken up by burned vs. unburned and pre- vs. post-burn. We see more of a correlated pattern in the data in the un-burned area compared to the burned. The burned data has more of a spread when comparing NDVI vs. NDSI. We have lower NDVI values in the unburned section compared to the burned, but the range of values for NDSI remains about the same, which suggests that snow coverage was similiar across burned and unburned areas. We see higher NDVI pre-burn compared to post-burn. 
 
 ```{r warning=FALSE,message=FALSE}
 ## Plot of snow (ndsi) vs greenness (ndvi) seperated by burned vs. unburned
@@ -209,7 +220,7 @@ ggplot(.,aes(x=ndvi,y=ndsi,color=month)) +
 ```
 
 ## Q4. What month is the greenest month on average? 
-July appears to be the greenest month on average in both the burned and unburned zones. 
+August appears to be the greenest month on average in both the burned and unburned zones.  Lower NDVI values correspond to poorly vegetated areas, and higher values are associated with denser vegetation cover. This suprised me given the hot and dry summer temperatures in CO. 
 ```{r warning=FALSE,message=FALSE}
 # Plotting seasonal variation by summarizing over month instead of year
 ndvi <- read_csv('data/hayman_ndvi.csv') %>%
@@ -227,7 +238,6 @@ ndvi_month <- ndvi_long %>%
   mutate(month=month(DateTime)) %>%
   group_by(site,month) %>%
   summarize(mean_NDVI=mean(NDVI))
-
 ggplot(ndvi_month,aes(x=month,y=mean_NDVI,color=site)) +
   geom_point(shape=1) + 
   geom_line() +
@@ -239,7 +249,8 @@ ggplot(ndvi_month,aes(x=month,y=mean_NDVI,color=site)) +
 
 
 ## Q5. What month is the snowiest on average?
-In the unburned zone, February has the highest NDSI, while NDSI in the burned zone suggests a snowier January. 
+In the unburned zone, February has the highest NDSI (indicating the most snow), while NDSI in the burned zone suggests a snowier January. This makes sense when we think about snow seasonality in Colorado. The burned zone has less interception from trees and vegetation, which could be the cause of the slightly earlier peak in NDSI. 
+
 ```{r warning=FALSE,message=FALSE}
 #Reading in the data. 
 ndsi <- read_csv('data/hayman_ndsi.csv') %>%
